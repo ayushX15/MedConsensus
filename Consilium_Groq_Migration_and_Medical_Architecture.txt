@@ -1,0 +1,1606 @@
+
+CONSILIUM — GROQ MIGRATION + MEDICAL AI ARCHITECTURE SPEC
+===========================================================
+
+PURPOSE
+-------
+Modify the existing Consilium project to become the foundation for an
+evidence-grounded AI medical information / decision-support system.
+
+The current project already implements a 3-phase two-model deliberation
+pipeline:
+
+1. GENERATE
+   Two models independently answer the user's question in parallel.
+
+2. CRITIQUE
+   Each model receives the other model's answer and critiques it.
+
+3. REVISE
+   Each model revises its own answer using the critique it received.
+
+The current project uses NVIDIA NIM. Replace the LLM provider with GroqCloud
+while keeping the existing FastAPI + React + TypeScript architecture as much
+as possible.
+
+IMPORTANT:
+- Do not rewrite the whole project unnecessarily.
+- Preserve working frontend components, styling, routing, and existing UX where
+  they still make sense.
+- Refactor cleanly rather than adding duplicate/temporary code.
+- Keep API keys server-side only.
+- Use asynchronous/concurrent calls wherever independent calls exist.
+- The medical pipeline must never invent evidence, citations, URLs, studies,
+  guidelines, statistics, or source details.
+- Missing information must not automatically block analysis.
+- The system must distinguish general medical information from
+  patient-specific inference.
+- This is a medical information / decision-support prototype, not an
+  autonomous doctor or a diagnostic authority.
+
+
+====================================================================
+1. TARGET MODEL CONFIGURATION
+====================================================================
+
+Use these models/roles:
+
+ROUTER
+------
+Model:
+    openai/gpt-oss-20b
+
+Purpose:
+    Classify the user's request and select the appropriate pipeline.
+
+Categories:
+    SIMPLE_MEDICAL
+    GENERAL
+    MEDICAL_ANALYSIS
+    URGENT_MEDICAL
+    EMERGENCY
+
+The router is NOT a doctor and must not diagnose.
+
+------------------------------------------------------------
+
+SAFETY CLASSIFIER
+-----------------
+Model:
+    openai/gpt-oss-safeguard-20b
+
+Purpose:
+    Detect safety-sensitive situations, especially possible urgent/emergency
+    medical situations and unsafe request patterns.
+
+Safety classification has priority over the normal router classification.
+
+The safety classifier should produce structured output such as:
+
+{
+  "risk_level": "safe | caution | urgent | emergency",
+  "route_override": true/false,
+  "red_flags": [],
+  "reason": "brief explanation"
+}
+
+Do NOT expose hidden chain-of-thought.
+
+------------------------------------------------------------
+
+SIMPLE / GENERAL ANSWER
+-----------------------
+Model:
+    openai/gpt-oss-20b
+
+Purpose:
+    Answer simple definitions, explanations, educational/general questions,
+    and low-risk general medical information.
+
+Examples:
+    "What does LDL cholesterol mean?"
+    "What is HDL?"
+    "What is an MRI?"
+    "What is the difference between CT and MRI?"
+
+The model must not turn a simple informational question into an unsupported
+patient-specific diagnosis.
+
+If the request contains symptoms, personal medical data requiring
+interpretation, treatment decisions, medication decisions, or possible
+urgent symptoms, it should be routed to MEDICAL_ANALYSIS or URGENT_MEDICAL
+instead.
+
+------------------------------------------------------------
+
+MODEL 1 — CLINICAL ANALYST
+--------------------------
+Model:
+    openai/gpt-oss-120b
+
+Personality:
+    Careful, systematic, broad differential thinker.
+
+Purpose:
+    Independently analyze the user's information before seeing Model 2.
+
+Bias:
+    Prefer not to miss important possibilities.
+
+Should:
+- Identify relevant possible explanations / conditions.
+- Explain reasoning at a high level.
+- Identify missing relevant information.
+- Separate known facts from inference.
+- Identify red flags.
+- Identify claims that require evidence.
+- Avoid unsupported certainty.
+- Never invent sources.
+
+------------------------------------------------------------
+
+MODEL 2 — SKEPTICAL ANALYST
+---------------------------
+Model:
+    openai/gpt-oss-20b
+
+Personality:
+    Skeptical, critical, evidence-focused.
+
+Purpose:
+    Independently analyze the same user information BEFORE seeing Model 1.
+
+Bias:
+    Prefer not to accept an incorrect conclusion.
+
+Should:
+- Independently form its own assessment.
+- Look for alternative explanations.
+- Look for contradictory evidence.
+- Identify dangerous assumptions.
+- Identify unsupported or overconfident claims.
+- Identify missing red flags.
+- Never simply agree because Model 1 later says something different.
+
+IMPORTANT:
+Model 1 and Model 2 MUST NOT see each other's initial responses.
+They must be generated independently and concurrently.
+
+------------------------------------------------------------
+
+MODEL 3 — EVIDENCE ADJUDICATOR
+-----------------------------
+Model:
+    openai/gpt-oss-120b
+
+Personality:
+    Neutral, conservative, evidence-first.
+
+Purpose:
+    Synthesize both revised analyses and the evidence.
+
+It must NOT simply vote between models.
+
+It must determine:
+- Which claims are supported.
+- Which claims are weakly supported.
+- Which claims are contradicted.
+- What remains uncertain.
+- Which explanations are more justified by the available evidence.
+- What the user should reasonably do next.
+- What cannot be determined from the supplied information.
+
+Bias:
+    Prefer uncertainty over confident unsupported conclusions.
+
+
+====================================================================
+2. FUTURE IMAGE / REPORT FEATURE
+====================================================================
+
+Use:
+
+    qwen/qwen3.6-27b
+
+Purpose:
+    Future image/report understanding, OCR, and visual extraction.
+
+Examples:
+- Blood reports
+- Medical test reports
+- Images of prescriptions
+- Other medical documents/images
+
+Do not make the image model the final medical adjudicator.
+
+Preferred flow:
+
+IMAGE / PDF
+    ->
+VISION / OCR / STRUCTURED EXTRACTION
+    ->
+RELEVANT INFORMATION EXTRACTION
+    ->
+NORMAL MEDICAL PIPELINE
+
+The extraction layer must clearly distinguish:
+- information actually visible in the image
+- unreadable / ambiguous information
+- information that is absent
+
+Never invent a value that is not visible.
+
+
+====================================================================
+3. HIGH-LEVEL FINAL ARCHITECTURE
+====================================================================
+
+USER
+  |
+  v
+SAFETY CLASSIFIER (GPT-OSS-SAFEGUARD-20B)
+  |
+  v
+ROUTER (GPT-OSS-20B)
+  |
+  +----------------------+-------------------------+
+  |                      |                         |
+  v                      v                         v
+SIMPLE / GENERAL      MEDICAL_ANALYSIS        URGENT / EMERGENCY
+GPT-OSS-20B           FULL PIPELINE            FULL PIPELINE
+                       |                        |
+                       v                        |
+              +--------+--------+               |
+              |                 |               |
+              v                 v               |
+          MODEL 1           MODEL 2             |
+          GPT-OSS-120B      GPT-OSS-20B         |
+          Analyst           Skeptic              |
+              |                 |               |
+              +--------+--------+               |
+                       |                        |
+                       v                        |
+                EVIDENCE RETRIEVAL              |
+                       |                        |
+                       v                        |
+               CLAIM-EVIDENCE MATRIX            |
+                       |                        |
+                       v                        |
+                  PEER REVIEW                    |
+                       |                        |
+                       v                        |
+                  RE-EVALUATE                    |
+                       |                        |
+                       v                        |
+               FINAL CLAIM MATRIX               |
+                       |                        |
+                       v                        |
+                  MODEL 3                        |
+                 GPT-OSS-120B                    |
+                       |                        |
+                       +------------+-----------+
+                                    |
+                                    v
+                         FINAL SAFETY CHECK
+                                    |
+                                    v
+                              USER RESPONSE
+
+
+====================================================================
+4. ROUTING RULES
+====================================================================
+
+Use four main practical paths.
+
+SIMPLE_MEDICAL
+--------------
+Examples:
+- "What does LDL cholesterol mean?"
+- "What is HbA1c?"
+- "What is a blood pressure reading?"
+
+GENERAL
+-------
+General educational questions that do not require patient-specific analysis.
+
+MEDICAL_ANALYSIS
+----------------
+Examples:
+- "My HbA1c is 8.4%, what does this mean?"
+- "I've been tired for two months. What could cause this?"
+- "Explain my blood report."
+
+URGENT_MEDICAL / EMERGENCY
+--------------------------
+Examples:
+- "I've been vomiting for 3 days and can't keep fluids down."
+- severe / concerning symptom combinations
+- possible emergency symptoms
+
+IMPORTANT:
+The safety classifier can OVERRIDE the router.
+
+The safety layer should not automatically terminate every medical request.
+Instead:
+
+SAFE
+    -> normal route
+
+CAUTION
+    -> normal route, but final response contains stronger caution where needed
+
+URGENT
+    -> run the full pipeline but prioritize prompt medical evaluation
+
+EMERGENCY
+    -> run safety-priority handling; the final answer must prominently tell
+       the user to seek emergency medical attention and must not bury the
+       emergency guidance below a long analysis
+
+A non-emergency question should NOT get stuck because the safety layer exists.
+
+
+====================================================================
+5. RELEVANT INFORMATION EXTRACTION
+====================================================================
+
+Do NOT require a giant patient profile.
+
+The system must work with sparse information.
+
+Call this layer:
+    RELEVANT INFORMATION EXTRACTION
+
+NOT:
+    COMPLETE PATIENT PROFILE
+
+Only extract information that is:
+1. actually provided, and
+2. relevant to the current request.
+
+Possible fields include:
+- symptoms
+- duration
+- severity
+- age, only if provided
+- sex, only if provided and relevant
+- test/report values
+- units
+- medications, if provided
+- known conditions, if provided
+- recent events
+- relevant history
+- user question
+
+Also track:
+- missing relevant information
+- ambiguous information
+- unreadable information
+- conflicting information
+
+Rules:
+- Never invent missing information.
+- Missing fields are optional unless they are genuinely necessary for a
+  safe conclusion.
+- Continue analysis with the available information when possible.
+- If missing information materially limits the conclusion, say so.
+- The final response may state what additional information would improve
+  the assessment.
+
+
+====================================================================
+6. MODEL 1 + MODEL 2 CONCURRENCY
+====================================================================
+
+Model 1 and Model 2 initial analyses MUST run concurrently.
+
+Use an async Groq client, preferably AsyncGroq, with asyncio.gather()
+or equivalent.
+
+Conceptually:
+
+    model1_task = analyze_with_model_1(...)
+    model2_task = analyze_with_model_2(...)
+
+    model1_result, model2_result = await asyncio.gather(
+        model1_task,
+        model2_task
+    )
+
+They receive:
+- the same original user input
+- the same extracted relevant information
+- the same applicable system rules
+
+They do NOT receive each other's initial answer.
+
+The same concurrency principle should be used wherever calls are independent.
+
+
+====================================================================
+7. GROQ API MIGRATION
+====================================================================
+
+Replace NVIDIA NIM/OpenAI-compatible NVIDIA configuration with GroqCloud.
+
+Install/use:
+    groq
+
+Recommended Python client:
+    AsyncGroq
+
+Environment variable:
+    GROQ_API_KEY
+
+Groq endpoint:
+    https://api.groq.com/openai/v1
+
+Do not expose GROQ_API_KEY to React/browser code.
+
+Recommended environment configuration:
+
+GROQ_API_KEY=your_key_here
+
+MODEL_ROUTER=openai/gpt-oss-20b
+MODEL_SIMPLE=openai/gpt-oss-20b
+MODEL_MODEL1=openai/gpt-oss-120b
+MODEL_MODEL2=openai/gpt-oss-20b
+MODEL_MODEL3=openai/gpt-oss-120b
+MODEL_SAFETY=openai/gpt-oss-safeguard-20b
+MODEL_VISION=qwen/qwen3.6-27b
+
+Keep model IDs configurable through environment variables.
+
+The existing MODEL_A / MODEL_B style configuration can be removed or mapped
+to the new role-based configuration.
+
+Use the official Groq SDK rather than manually maintaining an HTTP wrapper
+unless there is a concrete reason not to.
+
+
+====================================================================
+8. GROQ REQUEST SETTINGS
+====================================================================
+
+The Groq Playground currently shows settings such as:
+
+- model
+- temperature
+- max_completion_tokens
+- reasoning_effort
+- stream
+- stop
+- JSON mode / structured output
+- built-in tools such as Browser Search
+
+Use role-appropriate settings instead of one global setting.
+
+Suggested starting point:
+
+ROUTER
+    temperature: low
+    reasoning_effort: low/medium
+    structured output: ON
+
+SAFETY
+    temperature: low
+    reasoning_effort: medium
+    structured output: ON
+
+SIMPLE
+    temperature: low/moderate
+
+MODEL 1
+    temperature: low/moderate
+    reasoning_effort: medium/high
+
+MODEL 2
+    temperature: low/moderate
+    reasoning_effort: medium/high
+
+MODEL 3
+    temperature: low
+    reasoning_effort: high
+
+Do not expose raw internal reasoning to the frontend.
+
+The exact values should be configurable through environment variables.
+
+
+====================================================================
+9. EVIDENCE RETRIEVAL
+====================================================================
+
+Evidence must be real and verifiable.
+
+The models MUST NOT invent:
+- studies
+- papers
+- journal names
+- guidelines
+- organizations
+- statistics
+- URLs
+- publication details
+- quotes
+- evidence claims
+
+For evidence retrieval, use Groq's built-in Browser Search with GPT-OSS models
+where appropriate.
+
+Supported browser-search models include:
+    openai/gpt-oss-20b
+    openai/gpt-oss-120b
+    openai/gpt-oss-safeguard-20b
+
+For important medical claims, prefer using:
+    openai/gpt-oss-120b
+
+Use the actual returned sources for the claim-evidence system.
+
+IMPORTANT GROQ LIMITATION:
+Browser Search is NOT compatible with Structured Outputs.
+
+Therefore do NOT attempt:
+    Browser Search + structured JSON
+in the same API call.
+
+Use separate calls:
+
+CALL A
+-------
+GPT-OSS + Browser Search
+    ->
+actual web/source results
+
+CALL B
+-------
+GPT-OSS + Structured Output
+    ->
+evaluate the retrieved evidence and create the structured
+claim-evidence records
+
+
+====================================================================
+10. EVIDENCE SOURCE PREFERENCE
+====================================================================
+
+Prefer higher-quality sources when available:
+
+1. Clinical practice guidelines
+2. Systematic reviews / meta-analyses
+3. High-quality peer-reviewed studies
+4. Government / major public-health organizations
+5. Major academic medical institutions
+6. General medical references
+7. Lower-quality sources only when appropriate and clearly labelled
+
+Do not automatically treat a source as authoritative just because it looks
+medical.
+
+The evidence evaluator must determine whether the source actually supports
+the exact claim.
+
+
+====================================================================
+11. LAYER 6 — CLAIM-EVIDENCE VERIFICATION ENGINE
+====================================================================
+
+This layer is critical. Implement it as a real structured subsystem.
+
+PURPOSE
+-------
+Take medical claims produced by Model 1 and Model 2 and create an internal
+structured claim-evidence matrix.
+
+The matrix is the bridge between:
+    what a model claims
+and
+    what external evidence actually supports.
+
+------------------------------------------------------------
+
+STEP 1 — EXTRACT CLAIMS
+-----------------------
+Break each model answer into individual substantive claims.
+
+Do NOT treat the entire answer as a single claim.
+
+Example:
+
+    "Vitamin D deficiency can cause fatigue."
+
+becomes:
+
+{
+  "claim_id": "C001",
+  "claim": "Vitamin D deficiency can cause fatigue."
+}
+
+------------------------------------------------------------
+
+STEP 2 — CLASSIFY CLAIM
+-----------------------
+Each claim must have:
+
+GENERAL_MEDICAL_FACT
+PATIENT_SPECIFIC_INFERENCE
+RECOMMENDATION
+STATISTICAL_CLAIM
+SAFETY_CLAIM
+OTHER
+
+------------------------------------------------------------
+
+STEP 3 — ASSIGN IMPORTANCE
+---------------------------
+HIGH
+MEDIUM
+LOW
+
+HIGH importance includes:
+- diagnosis / differential diagnosis
+- treatment recommendations
+- medication claims
+- dosage claims
+- emergency/red-flag claims
+- claims materially affecting the final recommendation
+
+Low-importance conversational statements do not require extensive evidence
+verification.
+
+------------------------------------------------------------
+
+STEP 4 — RETRIEVE EVIDENCE
+--------------------------
+For important claims:
+- perform evidence retrieval
+- store actual source details
+- do not fabricate anything
+
+Suggested source record:
+
+{
+  "source_id": "S001",
+  "title": "...",
+  "url": "...",
+  "publisher": "...",
+  "source_type": "clinical_guideline",
+  "retrieved_at": "..."
+}
+
+------------------------------------------------------------
+
+STEP 5 — EVALUATE EACH SOURCE AGAINST THE CLAIM
+------------------------------------------------
+The evaluator must explicitly answer:
+
+Does this source ACTUALLY support the claim?
+
+Allowed relationships:
+
+SUPPORTS
+PARTIALLY_SUPPORTS
+CONTRADICTS
+DOES_NOT_ADDRESS
+
+Do not mark SUPPORTS just because the source is medically relevant.
+
+------------------------------------------------------------
+
+STEP 6 — RATE EVIDENCE QUALITY
+--------------------------------
+Use:
+
+HIGH
+MODERATE
+LOW
+VERY_LOW
+
+Consider:
+- source type
+- study quality
+- relevance
+- consistency
+- limitations
+- directness to the claim
+
+------------------------------------------------------------
+
+STEP 7 — CLAIM STATUS
+---------------------
+Each substantive claim should receive:
+
+SUPPORTED
+PARTIALLY_SUPPORTED
+WEAKLY_SUPPORTED
+CONTRADICTED
+INSUFFICIENT_EVIDENCE
+NOT_VERIFIABLE
+
+Do not force a supported answer when evidence is insufficient.
+
+------------------------------------------------------------
+
+STEP 8 — INTERNAL DATA SCHEMA
+-----------------------------
+Recommended structure:
+
+{
+  "claim_id": "C001",
+  "claim": "Vitamin D deficiency can cause fatigue.",
+  "claim_type": "GENERAL_MEDICAL_FACT",
+  "importance": "HIGH",
+  "sources": [
+    {
+      "source_id": "S001",
+      "supports": "SUPPORTS",
+      "evidence_quality": "HIGH",
+      "reason": "The source explicitly discusses fatigue as a symptom associated with vitamin D deficiency."
+    }
+  ],
+  "overall_support": "SUPPORTED",
+  "overall_evidence_quality": "HIGH"
+}
+
+The complete matrix:
+
+{
+  "claims": [
+    { ... },
+    { ... }
+  ]
+}
+
+------------------------------------------------------------
+
+CRITICAL LAYER 6 RULES
+----------------------
+1. NEVER invent sources.
+2. NEVER invent URLs.
+3. NEVER mark claims as supported only because the model believes them.
+4. A source must actually contain evidence relevant to the claim.
+5. Patient-specific conclusions require stronger justification than general facts.
+6. If evidence cannot be verified, use INSUFFICIENT_EVIDENCE or NOT_VERIFIABLE.
+7. Not every conversational statement needs evidence verification.
+8. The final model must not turn weak/insufficient evidence into a confident
+   medical statement.
+9. Preserve the original source text/metadata needed to support the displayed
+   citation.
+10. Keep claim IDs and source IDs stable so the frontend can connect final
+    statements to the evidence they depend on.
+
+
+====================================================================
+12. PEER REVIEW PHASE
+====================================================================
+
+After both initial analyses are complete:
+
+MODEL 1 receives:
+    Model 2 initial analysis
+    Model 2 evidence/claim matrix
+
+MODEL 2 receives:
+    Model 1 initial analysis
+    Model 1 evidence/claim matrix
+
+Each must critique the other.
+
+The critique should check:
+- factual errors
+- unsupported claims
+- weak evidence
+- misinterpretation of evidence
+- missing alternatives
+- missing red flags
+- logical errors
+- contradictions
+- unsafe recommendations
+- overconfidence
+
+Do not require models to agree.
+
+Disagreement is allowed and useful.
+
+
+====================================================================
+13. RE-EVALUATION PHASE
+====================================================================
+
+Each model receives:
+- its original analysis
+- the other model's analysis
+- the critique it received
+- relevant evidence
+
+Each model re-evaluates its own conclusion.
+
+Possible revision state:
+
+AGREE
+PARTIALLY_CHANGE
+CHANGE
+INSUFFICIENT_INFORMATION
+
+Do not force consensus.
+
+
+====================================================================
+14. FINAL CLAIM MATRIX
+====================================================================
+
+After re-evaluation, run the claim-evidence process again for the revised
+answers.
+
+Reason:
+The claims may have changed after peer review.
+
+Pipeline:
+
+Initial claims
+    ->
+Evidence
+    ->
+Peer critique
+    ->
+Re-evaluation
+    ->
+Final claims
+    ->
+Final evidence verification
+
+Model 3 must primarily use the FINAL verified claim matrices.
+
+
+====================================================================
+15. MODEL 3 — FINAL ADJUDICATION
+====================================================================
+
+Model 3 receives:
+
+- original user input
+- relevant extracted information
+- Model 1 initial analysis
+- Model 2 initial analysis
+- Model 1 critique
+- Model 2 critique
+- Model 1 revised analysis
+- Model 2 revised analysis
+- final claim-evidence matrices
+- retrieved sources
+
+Model 3 must determine:
+
+1. What is supported?
+2. What is uncertain?
+3. What is disputed?
+4. Which interpretation is best supported?
+5. What cannot be determined?
+6. What next step is reasonable?
+7. Are there safety concerns?
+
+Do NOT ask Model 3 to simply "pick the better model."
+
+It is an evidence adjudicator, not a voting mechanism.
+
+
+====================================================================
+16. PATIENT-SPECIFIC VS GENERAL CLAIMS
+====================================================================
+
+Treat these differently.
+
+GENERAL MEDICAL FACT:
+    "Condition X can cause symptom Y."
+
+PATIENT-SPECIFIC INFERENCE:
+    "The patient probably has condition X."
+
+The second claim requires:
+- available patient information
+- differential reasoning
+- evidence
+- greater uncertainty
+
+The system must not convert a general medical fact directly into a diagnosis.
+
+
+====================================================================
+17. FINAL SAFETY CHECK
+====================================================================
+
+Do a final safety gate before displaying the result.
+
+It should check:
+- possible emergency symptoms
+- unsafe treatment recommendations
+- unsupported diagnosis
+- unsupported certainty
+- medication/dosage issues
+- source/evidence mismatch
+- contradictions
+- missing major red flags
+
+Possible result:
+
+SAFE
+CAUTION
+URGENT
+EMERGENCY
+
+Behavior:
+
+SAFE
+    -> show normal answer
+
+CAUTION
+    -> show answer with stronger limitation/caution
+
+URGENT
+    -> show useful analysis + clearly recommend prompt medical evaluation
+
+EMERGENCY
+    -> emergency guidance must be highly visible and must not be buried
+
+This layer should NOT block normal non-emergency requests.
+
+
+====================================================================
+18. USER-FACING OUTPUT
+====================================================================
+
+The user should NOT see the full internal model conversation by default.
+
+Do not display:
+- raw chain-of-thought
+- hidden reasoning
+- internal prompt text
+- raw system messages
+- unnecessary implementation details
+
+Instead show a clean final response.
+
+Recommended structure:
+
+------------------------------------------------------------
+ASSESSMENT
+------------------------------------------------------------
+A concise answer written by Model 3.
+
+------------------------------------------------------------
+WHY
+------------------------------------------------------------
+A few important evidence-grounded points.
+
+------------------------------------------------------------
+CERTAINTY / EVIDENCE
+------------------------------------------------------------
+Do NOT show "AI confidence: 94%".
+
+Use human-readable labels:
+
+Certainty:
+    Likely
+    Possible
+    Unclear
+    Cannot determine from provided information
+
+Evidence quality:
+    Strong
+    Moderate
+    Limited
+    Insufficient
+
+------------------------------------------------------------
+WHAT COULD CHANGE THIS ASSESSMENT
+------------------------------------------------------------
+Show only relevant missing information.
+
+------------------------------------------------------------
+EVIDENCE & SOURCES   [dropdown]
+------------------------------------------------------------
+
+The evidence section should be expandable.
+
+Inside it, organize evidence by claim rather than showing a giant unordered
+list of links.
+
+Example:
+
+[1] HbA1c reflects average blood glucose
+    Status: Strongly supported
+    Evidence quality: High
+
+    Why it supports the claim:
+    ...
+
+    Sources:
+    - Clinical Guideline
+      Publisher: ...
+      View source -> URL
+    - Medical reference
+      Publisher: ...
+      View source -> URL
+
+------------------------------------------------------------
+
+The user should be able to click a claim and see:
+- claim
+- evidence status
+- evidence quality
+- short explanation
+- actual source(s)
+- source titles
+- publisher
+- direct link
+
+------------------------------------------------------------
+
+If Model 1 and Model 2 materially disagree, expose this to the user in a
+simplified form.
+
+Example:
+
+"Two plausible explanations remain. The available evidence does not allow
+one to be confidently favored from the information provided."
+
+Expandable section:
+
+    Why there is uncertainty
+    Possibility A -> evidence
+    Possibility B -> evidence
+    Information that would help distinguish them -> ...
+
+Do not hide meaningful uncertainty just to make the answer look confident.
+
+
+====================================================================
+19. REPORT / LAB RESULT UI (FUTURE)
+====================================================================
+
+For uploaded medical reports, prefer a structured UI rather than a wall of
+text.
+
+Example:
+
+REPORT SUMMARY
+
+5 results need attention
+8 results within reference range
+2 results require context
+
+Key findings:
+
+HbA1c       8.4%       High
+LDL         168 mg/dL  High
+HDL         52 mg/dL   Within range
+Hemoglobin  14.2 g/dL  Within range
+
+Then:
+
+- What this could mean
+- What deserves attention
+- What to discuss with the doctor
+- Evidence & Sources dropdown
+
+Charts can be used when data supports them, especially:
+- historical lab trends
+- repeated measurements
+- comparisons against reference ranges
+
+Do not create charts that imply clinical meaning unsupported by the data.
+
+
+====================================================================
+20. BACKEND / FRONTEND DATA CONTRACT
+====================================================================
+
+The backend should return STRUCTURED DATA, not HTML generated by the model.
+
+Recommended response shape:
+
+{
+  "prompt": "...",
+
+  "route": "MEDICAL_ANALYSIS",
+
+  "safety": {
+    "risk_level": "safe",
+    "red_flags": []
+  },
+
+  "answer": "...",
+
+  "assessment": {
+    "certainty": "possible",
+    "evidence_quality": "high"
+  },
+
+  "claims": [
+    {
+      "claim_id": "C001",
+      "text": "...",
+      "status": "supported",
+      "evidence_quality": "high",
+      "source_ids": ["S001", "S002"]
+    }
+  ],
+
+  "missing_information": [],
+
+  "recommendations": [],
+
+  "sources": [
+    {
+      "source_id": "S001",
+      "title": "...",
+      "publisher": "...",
+      "url": "...",
+      "source_type": "clinical_guideline"
+    }
+  ],
+
+  "uncertainty": [],
+
+  "model_details": {
+    "model_1": "...",
+    "model_2": "...",
+    "model_3": "..."
+  }
+}
+
+The React frontend should render:
+- the main answer
+- evidence badges
+- expandable claim evidence
+- source cards
+- uncertainty
+- missing information
+- charts
+
+The frontend should not need to understand raw model reasoning.
+
+
+====================================================================
+21. GROQ BROWSER SEARCH IMPLEMENTATION
+====================================================================
+
+When evidence retrieval is required, use the Groq built-in browser search
+tool.
+
+Example request shape:
+
+from groq import AsyncGroq
+
+client = AsyncGroq(api_key=os.environ["GROQ_API_KEY"])
+
+completion = await client.chat.completions.create(
+    messages=[
+        {
+            "role": "system",
+            "content": "Evidence retrieval instructions..."
+        },
+        {
+            "role": "user",
+            "content": "Retrieve evidence for these medical claims..."
+        }
+    ],
+    model="openai/gpt-oss-120b",
+    temperature=1,
+    max_completion_tokens=2048,
+    reasoning_effort="medium",
+    stream=False,
+    tool_choice="required",
+    tools=[
+        {
+            "type": "browser_search"
+        }
+    ]
+)
+
+IMPORTANT:
+Do not rely on hard-coded example sources.
+Extract the actual returned evidence/search data from the Groq response.
+
+Because browser search and structured outputs are incompatible, perform the
+structured claim-evidence evaluation in a SECOND API call.
+
+
+====================================================================
+22. STRUCTURED OUTPUT CALL
+====================================================================
+
+Use Groq structured output / JSON schema for:
+- router output
+- safety classification
+- information extraction
+- claim extraction
+- source evaluation
+- claim-evidence matrix
+- final backend response where appropriate
+
+Do not combine structured outputs with Browser Search in the same call.
+
+A clean two-call evidence pattern is:
+
+CALL 1:
+    GPT-OSS-120B
+    Browser Search ON
+    ->
+    actual sources / evidence
+
+CALL 2:
+    GPT-OSS-120B
+    Structured Output ON
+    ->
+    structured claim-evidence evaluation
+
+
+====================================================================
+23. EXISTING CONSILIUM FILES — MODIFY CLEANLY
+====================================================================
+
+Current structure:
+
+Consilium/
+├── .env.example
+├── backend/
+│   ├── main.py
+│   ├── config.py
+│   ├── llm_client.py
+│   ├── models.py
+│   ├── pipeline.py
+│   ├── prompts.py
+│   ├── requirements.txt
+│   └── routers/
+│       └── council.py
+└── frontend/
+    ├── index.html
+    ├── package.json
+    ├── vite.config.ts
+    └── src/
+        ├── App.tsx
+        ├── App.css
+        ├── index.css
+        ├── api/
+        │   └── council.ts
+        ├── components/
+        │   ├── CouncilView.tsx
+        │   ├── PhaseIndicator.tsx
+        │   ├── PromptInput.tsx
+        │   └── ResponsePanel.tsx
+        └── types/
+            └── index.ts
+
+Recommended refactor:
+
+backend/llm_client.py
+    -> replace NVIDIA NIM client with AsyncGroq client
+
+backend/config.py
+    -> add role-based Groq model settings
+
+backend/models.py
+    -> add Pydantic schemas for:
+       router
+       safety
+       relevant information
+       claims
+       sources
+       evidence evaluation
+       final response
+
+backend/prompts.py
+    -> split prompts by role
+
+backend/pipeline.py
+    -> implement:
+       safety
+       routing
+       simple path
+       full medical path
+       concurrent model 1/model 2
+       evidence retrieval
+       claim matrix
+       critique
+       revise
+       final adjudication
+       final safety
+
+backend/routers/council.py
+    -> preserve /api/council where practical, but expand response schema
+
+frontend
+    -> preserve existing design where practical
+    -> replace side-by-side raw two-model result UI with a final-answer-first
+       UI for the medical version
+    -> add expandable evidence/source panels
+    -> keep an optional "deliberation" view only if useful
+
+Do not break the existing /health endpoint.
+
+
+====================================================================
+24. EXISTING PROJECT BEHAVIOR TO PRESERVE
+====================================================================
+
+The original Consilium project currently has:
+
+POST /api/council
+
+Request:
+{
+  "prompt": "Is nuclear energy safe?"
+}
+
+Original response includes:
+- prompt
+- model_a
+- model_b
+- initial_response
+- critique_received
+- final_response
+- was_revised
+- phases_completed
+
+During migration, preserve the core generate -> critique -> revise behavior
+for the two core models, but extend it to the new medical architecture.
+
+Do not remove the successful parts of the old system without a reason.
+
+
+====================================================================
+25. STREAMING
+====================================================================
+
+For the final user experience, streaming can be used where appropriate.
+
+However, do NOT stream partial internal medical reasoning or evidence decisions
+to the user in a way that makes an incomplete answer look final.
+
+Safe approach:
+- backend performs internal pipeline
+- final response is streamed only after final adjudication, or returned as a
+  complete structured response
+- evidence dropdown data is sent with the final response
+
+For development/debug mode, logging internal phase status is fine.
+
+
+====================================================================
+26. ERROR HANDLING
+====================================================================
+
+Handle:
+- Groq API errors
+- timeouts
+- rate limits
+- failed model calls
+- failed browser search
+- malformed structured output
+- missing evidence
+- unavailable sources
+
+Do not silently substitute made-up data.
+
+If evidence retrieval fails:
+    mark evidence as unavailable / unverified
+
+If one model fails:
+    do not fabricate a replacement response
+    return a controlled error/fallback state
+
+If Model 1 or Model 2 fails, decide whether the system:
+- retries once
+- degrades to a single-model analysis with a clearly marked reduced
+  confidence state
+- or returns an inability-to-complete message
+
+Do not silently pretend both independent analyses completed.
+
+
+====================================================================
+27. PRIVACY / MEDICAL DATA
+====================================================================
+
+The initial project should be treated as a prototype/research/educational
+system.
+
+Use synthetic or anonymized data during development.
+
+Do not ask users to submit unnecessary personally identifiable information.
+
+Do not log raw medical prompts/reports unnecessarily.
+
+Do not expose API keys to the browser.
+
+Before real-world deployment with identifiable medical records, separately
+address privacy, data retention, regulatory, security, and provider
+compliance requirements.
+
+
+====================================================================
+28. IMPLEMENTATION ORDER
+====================================================================
+
+Do this in stages and keep the project runnable after each stage.
+
+STAGE 1
+-------
+Migrate NVIDIA -> Groq.
+Verify a single Groq request works.
+
+STAGE 2
+-------
+Convert llm_client.py to AsyncGroq.
+Verify concurrent model calls.
+
+STAGE 3
+-------
+Implement router + safety classifier.
+
+STAGE 4
+-------
+Implement:
+- SIMPLE
+- GENERAL
+- MEDICAL_ANALYSIS
+- URGENT / EMERGENCY
+
+STAGE 5
+-------
+Implement evidence retrieval with Browser Search.
+
+STAGE 6
+-------
+Implement claim extraction + claim-evidence matrix.
+
+STAGE 7
+-------
+Implement critique + revise using the new evidence-aware format.
+
+STAGE 8
+-------
+Implement Model 3 final adjudication.
+
+STAGE 9
+-------
+Implement final safety gate.
+
+STAGE 10
+--------
+Implement new frontend:
+- final answer
+- evidence dropdown
+- claim-level evidence
+- source cards
+- uncertainty
+- missing information
+- safety alerts
+
+STAGE 11
+--------
+Add future image/report support using Qwen 3.6 27B.
+
+
+====================================================================
+29. FINAL UX PRINCIPLES
+====================================================================
+
+The product should feel like:
+
+    "I asked a medical question and received a clear answer with
+     evidence I can inspect."
+
+NOT:
+
+    "I watched three AI models talk to each other."
+
+The multi-model architecture is an internal reliability mechanism.
+
+The main user-facing answer should be:
+- concise enough to understand
+- medically cautious
+- explicit about uncertainty
+- evidence-backed
+- easy to scan
+
+The evidence layer should provide depth without overwhelming the user.
+
+
+====================================================================
+30. SUCCESS CRITERIA
+====================================================================
+
+The modified Consilium is successful when:
+
+[ ] NVIDIA dependency is removed from the active LLM path.
+[ ] GroqCloud is used through the official SDK.
+[ ] API key is server-side only.
+[ ] Router works.
+[ ] Safety classifier works.
+[ ] Simple/general requests avoid the expensive full deliberation path.
+[ ] Medical-analysis requests use the full pipeline.
+[ ] Model 1 and Model 2 initial calls run concurrently.
+[ ] Model 1 and Model 2 are independent before critique.
+[ ] Evidence retrieval uses real retrieved sources.
+[ ] No source/citation/URL is invented.
+[ ] Claim-evidence matrix is structured and persistent through the pipeline.
+[ ] Peer review is cross-model.
+[ ] Re-evaluation occurs after critique.
+[ ] Model 3 adjudicates evidence rather than voting.
+[ ] Final safety check exists.
+[ ] Normal non-emergency questions do not get stuck in the safety layer.
+[ ] Final UI shows answer first.
+[ ] Evidence is expandable.
+[ ] Source links are connected to the exact claims they support.
+[ ] Significant uncertainty/disagreement is visible.
+[ ] Missing information is shown only when relevant.
+[ ] Raw chain-of-thought is never shown to the user.
+[ ] Existing /health endpoint continues to work.
+[ ] Existing project remains runnable.
+[ ] Errors are handled without fabricating output.
+
+
+====================================================================
+31. IMPORTANT GROQ NOTES
+====================================================================
+
+As of the current Groq documentation:
+
+Production models include:
+    openai/gpt-oss-20b
+    openai/gpt-oss-120b
+
+Preview models include:
+    openai/gpt-oss-safeguard-20b
+    qwen/qwen3.6-27b
+
+Groq's model catalog and exact model availability can change. Keep all model
+IDs configurable rather than hard-coding them across the codebase.
+
+Groq currently exposes an API compatible with the OpenAI-style chat completions
+pattern and provides an official Python SDK.
+
+Groq's built-in Browser Search is currently supported by:
+    openai/gpt-oss-20b
+    openai/gpt-oss-120b
+    openai/gpt-oss-safeguard-20b
+
+Browser Search is currently NOT compatible with Structured Outputs.
+
+Groq documents built-in web search / compound systems separately from the
+GPT-OSS Browser Search functionality. Do not mix up:
+    browser_search
+with
+    Groq Compound / web_search
+
+For the evidence architecture described above, use GPT-OSS Browser Search
+and then a separate structured-output evaluation call.
+
+
+====================================================================
+32. DO NOT OVERENGINEER YET
+====================================================================
+
+For the first implementation:
+- use one Groq API key
+- use environment variables for model IDs
+- use AsyncGroq
+- use asyncio.gather for independent model calls
+- keep the existing FastAPI routes
+- keep the existing React app and refactor the result display
+- implement the claim-evidence matrix with Pydantic models / JSON
+- store evidence in memory for each request first
+- do not add a database unless necessary
+- do not add authentication unless already present
+- do not add PDF storage until the image/report feature is started
+
+Build a working end-to-end system first.
+
+
+====================================================================
+END OF SPECIFICATION
+====================================================================
