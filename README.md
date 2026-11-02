@@ -120,7 +120,7 @@ Consilium’s `HybridLLMClient` monitors provider health automatically:
 ### 1. Clone & Set Up Virtual Environment
 
 ```bash
-git clone https://github.com/Weird-ragazzo/Consilium.git
+git clone https://github.com/ayushX15/MedConsensus.git
 cd Consilium
 
 # Create and activate Python virtual environment
