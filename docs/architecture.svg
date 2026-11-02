@@ -1,0 +1,363 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" width="100%" height="100%" style="background:#080d1a; font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070c18" />
+      <stop offset="50%" stop-color="#0b1326" />
+      <stop offset="100%" stop-color="#080e1c" />
+    </linearGradient>
+
+    <!-- Glowing accents -->
+    <radialGradient id="cyanGlow" cx="20%" cy="20%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="indigoGlow" cx="80%" cy="80%" r="50%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Card Gradients -->
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#141f36" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0d1627" stop-opacity="0.9" />
+    </linearGradient>
+
+    <linearGradient id="groqGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f55036" />
+      <stop offset="100%" stop-color="#ff7a59" />
+    </linearGradient>
+
+    <linearGradient id="geminiGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+
+    <!-- Card Filter Shadows -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+
+    <!-- Arrow Marker -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#38bdf8" />
+    </marker>
+    <marker id="arrowIndigo" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#818cf8" />
+    </marker>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect width="1600" height="700" fill="url(#bgGrad)" />
+  <circle cx="200" cy="150" r="350" fill="url(#cyanGlow)" />
+  <circle cx="1400" cy="550" r="400" fill="url(#indigoGlow)" />
+
+  <!-- HEADER -->
+  <g transform="translate(60, 45)">
+    <text x="0" y="24" fill="#38bdf8" font-size="28" font-weight="800" letter-spacing="1.5">🩺 CONSILIUM</text>
+    <text x="185" y="23" fill="#94a3b8" font-size="16" font-weight="400">|</text>
+    <text x="200" y="24" fill="#f1f5f9" font-size="20" font-weight="600">Hybrid Medical Deliberation &amp; Consensus Pipeline</text>
+    <text x="0" y="52" fill="#64748b" font-size="13" font-weight="400">Evidence-Grounded Dialectic AI Architecture · Sub-15s End-to-End Consensus · 1M TPM Headroom</text>
+
+    <!-- Legend badges -->
+    <g transform="translate(1080, 5)">
+      <rect x="0" y="0" width="170" height="28" rx="14" fill="#1e293b" stroke="#f55036" stroke-width="1.2" />
+      <circle cx="15" cy="14" r="5" fill="#f55036" />
+      <text x="28" y="18" fill="#f8fafc" font-size="11" font-weight="600">Groq (Ultra-Fast Triage)</text>
+
+      <rect x="185" y="0" width="215" height="28" rx="14" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.2" />
+      <circle cx="200" cy="14" r="5" fill="#8b5cf6" />
+      <text x="213" y="18" fill="#f8fafc" font-size="11" font-weight="600">Gemini 3.5 Flash Lite (Deep Reason)</text>
+    </g>
+  </g>
+
+  <!-- PIPELINE CONNECTORS (Horizontal flowing lines) -->
+  <path d="M 270 380 L 335 380" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <path d="M 605 380 L 670 380" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <path d="M 940 380 L 1005 380" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <path d="M 1275 380 L 1335 380" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+
+  <!-- ================= STAGE 1: INTAKE & TRIAGE ================= -->
+  <g transform="translate(60, 130)">
+    <!-- Column Outer Box -->
+    <rect width="210" height="500" rx="16" fill="url(#cardGrad)" stroke="#1e293b" stroke-width="1.5" filter="url(#cardShadow)" />
+    
+    <!-- Stage Header -->
+    <rect width="210" height="42" rx="16" fill="#0f172a" />
+    <rect y="26" width="210" height="16" fill="#0f172a" />
+    <text x="16" y="26" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="1">1. INTAKE &amp; TRIAGE</text>
+    <rect x="145" y="11" width="50" height="20" rx="10" fill="#f55036" fill-opacity="0.2" stroke="#f55036" stroke-width="1" />
+    <text x="156" y="25" fill="#ff7a59" font-size="9" font-weight="700">~0.8s</text>
+
+    <!-- Query Card -->
+    <g transform="translate(15, 60)">
+      <rect width="180" height="95" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1" />
+      <text x="12" y="24" fill="#38bdf8" font-size="11" font-weight="700">👤 Patient / Query</text>
+      <text x="12" y="44" fill="#cbd5e1" font-size="10">Clinical symptoms,</text>
+      <text x="12" y="59" fill="#cbd5e1" font-size="10">timeline, medications,</text>
+      <text x="12" y="74" fill="#cbd5e1" font-size="10">and personal history</text>
+    </g>
+
+    <path d="M 105 165 L 105 190" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow)" />
+
+    <!-- Router & Safety Gate -->
+    <g transform="translate(15, 200)">
+      <rect width="180" height="270" rx="10" fill="#111c33" stroke="#f55036" stroke-width="1.2" />
+      <rect x="0" y="0" width="180" height="28" rx="10" fill="#f55036" fill-opacity="0.15" />
+      <text x="12" y="18" fill="#f87171" font-size="11" font-weight="700">🛡️ Safety &amp; Router</text>
+      
+      <text x="12" y="48" fill="#e2e8f0" font-size="10" font-weight="600">Model: gpt-oss-20b</text>
+      <text x="12" y="63" fill="#94a3b8" font-size="9">Provider: Groq Cloud</text>
+      
+      <line x1="12" y1="75" x2="168" y2="75" stroke="#334155" stroke-width="1" />
+
+      <text x="12" y="96" fill="#f1f5f9" font-size="10" font-weight="600">Triage Classifications:</text>
+      <rect x="12" y="106" width="156" height="22" rx="4" fill="#1e293b" />
+      <text x="18" y="121" fill="#4ade80" font-size="9">🟢 Safe / Educational</text>
+
+      <rect x="12" y="134" width="156" height="22" rx="4" fill="#1e293b" />
+      <text x="18" y="149" fill="#facc15" font-size="9">🟡 Caution / Analysis</text>
+
+      <rect x="12" y="162" width="156" height="22" rx="4" fill="#1e293b" />
+      <text x="18" y="177" fill="#fb923c" font-size="9">🟠 Urgent Medical Care</text>
+
+      <rect x="12" y="190" width="156" height="22" rx="4" fill="#1e293b" />
+      <text x="18" y="205" fill="#f87171" font-size="9">🔴 Emergency Override</text>
+
+      <text x="12" y="235" fill="#64748b" font-size="9">Instant Red Flag Isolation</text>
+      <text x="12" y="250" fill="#64748b" font-size="9">&amp; Dynamic Path Switch</text>
+    </g>
+  </g>
+
+  <!-- ================= STAGE 2: DUAL ANALYST ================= -->
+  <g transform="translate(335, 130)">
+    <rect width="270" height="500" rx="16" fill="url(#cardGrad)" stroke="#1e293b" stroke-width="1.5" filter="url(#cardShadow)" />
+    
+    <rect width="270" height="42" rx="16" fill="#0f172a" />
+    <rect y="26" width="270" height="16" fill="#0f172a" />
+    <text x="16" y="26" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="1">2. DUAL-STREAM ANALYSIS</text>
+    <rect x="200" y="11" width="55" height="20" rx="10" fill="#8b5cf6" fill-opacity="0.2" stroke="#8b5cf6" stroke-width="1" />
+    <text x="210" y="25" fill="#c084fc" font-size="9" font-weight="700">Parallel</text>
+
+    <!-- Clinical Extraction Card -->
+    <g transform="translate(15, 55)">
+      <rect width="240" height="85" rx="10" fill="#111c33" stroke="#0284c7" stroke-width="1.2" />
+      <text x="12" y="22" fill="#38bdf8" font-size="11" font-weight="700">📋 Clinical Extraction Module</text>
+      <text x="12" y="42" fill="#cbd5e1" font-size="10">• Symptoms, Duration &amp; Severity</text>
+      <text x="12" y="58" fill="#cbd5e1" font-size="10">• Report Values, Labs &amp; Medications</text>
+      <text x="12" y="74" fill="#facc15" font-size="10">• Explicit Missing/Ambiguous Flags</text>
+    </g>
+
+    <!-- Dual Stream Bracket/Fork -->
+    <path d="M 135 145 L 135 165 M 70 165 L 200 165 M 70 165 L 70 180 M 200 165 L 200 180" stroke="#38bdf8" stroke-width="1.5" />
+
+    <!-- Model 1 (Clinical Analyst) -->
+    <g transform="translate(15, 185)">
+      <rect width="112" height="285" rx="10" fill="#132342" stroke="#38bdf8" stroke-width="1.2" />
+      <rect width="112" height="28" rx="10" fill="#0284c7" fill-opacity="0.3" />
+      <text x="8" y="18" fill="#38bdf8" font-size="10" font-weight="700">Model 1: Clinical</text>
+      <text x="8" y="45" fill="#e2e8f0" font-size="9" font-weight="600">Gemini 3.5 Flash</text>
+      <text x="8" y="60" fill="#94a3b8" font-size="8">Role: Diagnostician</text>
+      <line x1="8" y1="70" x2="104" y2="70" stroke="#334155" stroke-width="1" />
+      
+      <text x="8" y="90" fill="#cbd5e1" font-size="8.5">• Broad differential</text>
+      <text x="8" y="108" fill="#cbd5e1" font-size="8.5">• Evidence priorities</text>
+      <text x="8" y="126" fill="#cbd5e1" font-size="8.5">• Disease pathways</text>
+      <text x="8" y="144" fill="#cbd5e1" font-size="8.5">• Symptom timelines</text>
+      <text x="8" y="162" fill="#cbd5e1" font-size="8.5">• Primary thesis</text>
+
+      <rect x="8" y="240" width="96" height="32" rx="6" fill="#1e293b" />
+      <text x="12" y="255" fill="#38bdf8" font-size="8" font-weight="600">Generates Thesis</text>
+      <text x="12" y="267" fill="#64748b" font-size="7.5">Broad clinical view</text>
+    </g>
+
+    <!-- Model 2 (Skeptical Analyst) -->
+    <g transform="translate(143, 185)">
+      <rect width="112" height="285" rx="10" fill="#1a1c3b" stroke="#a855f7" stroke-width="1.2" />
+      <rect width="112" height="28" rx="10" fill="#7c3aed" fill-opacity="0.3" />
+      <text x="8" y="18" fill="#c084fc" font-size="10" font-weight="700">Model 2: Skeptical</text>
+      <text x="8" y="45" fill="#e2e8f0" font-size="9" font-weight="600">Gemini 3.5 Flash</text>
+      <text x="8" y="60" fill="#94a3b8" font-size="8">Role: Counter-Review</text>
+      <line x1="8" y1="70" x2="104" y2="70" stroke="#334155" stroke-width="1" />
+
+      <text x="8" y="90" fill="#cbd5e1" font-size="8.5">• Diagnostic biases</text>
+      <text x="8" y="108" fill="#cbd5e1" font-size="8.5">• Benign mimics</text>
+      <text x="8" y="126" fill="#cbd5e1" font-size="8.5">• Alternative causes</text>
+      <text x="8" y="144" fill="#cbd5e1" font-size="8.5">• Overconfidence</text>
+      <text x="8" y="162" fill="#cbd5e1" font-size="8.5">• Sparse-data risks</text>
+
+      <rect x="8" y="240" width="96" height="32" rx="6" fill="#1e293b" />
+      <text x="12" y="255" fill="#c084fc" font-size="8" font-weight="600">Generates Rebuttal</text>
+      <text x="12" y="267" fill="#64748b" font-size="7.5">Skeptical check</text>
+    </g>
+  </g>
+
+  <!-- ================= STAGE 3: EVIDENCE GROUNDING ================= -->
+  <g transform="translate(670, 130)">
+    <rect width="270" height="500" rx="16" fill="url(#cardGrad)" stroke="#1e293b" stroke-width="1.5" filter="url(#cardShadow)" />
+    
+    <rect width="270" height="42" rx="16" fill="#0f172a" />
+    <rect y="26" width="270" height="16" fill="#0f172a" />
+    <text x="16" y="26" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="1">3. EVIDENCE GROUNDING</text>
+    <rect x="180" y="11" width="75" height="20" rx="10" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1" />
+    <text x="188" y="25" fill="#34d399" font-size="9" font-weight="700">Consensus</text>
+
+    <!-- Claim Extraction Box -->
+    <g transform="translate(15, 60)">
+      <rect width="240" height="100" rx="10" fill="#111c33" stroke="#059669" stroke-width="1.2" />
+      <text x="12" y="22" fill="#34d399" font-size="11" font-weight="700">📑 Substantive Claim Extraction</text>
+      <text x="12" y="44" fill="#cbd5e1" font-size="10">• Decomposes both models' analyses</text>
+      <text x="12" y="60" fill="#cbd5e1" font-size="10">• Categorizes clinical vs factual claims</text>
+      <text x="12" y="76" fill="#cbd5e1" font-size="10">• Assigns priority &amp; validation scope</text>
+    </g>
+
+    <path d="M 135 168 L 135 195" stroke="#10b981" stroke-width="2" marker-end="url(#arrow)" />
+
+    <!-- Literature & Guidelines Matrix -->
+    <g transform="translate(15, 205)">
+      <rect width="240" height="265" rx="10" fill="#0c1e2b" stroke="#10b981" stroke-width="1.2" />
+      <rect width="240" height="28" rx="10" fill="#10b981" fill-opacity="0.2" />
+      <text x="12" y="19" fill="#34d399" font-size="11" font-weight="700">🏛️ Guidelines &amp; Literature Matrix</text>
+
+      <text x="12" y="48" fill="#e2e8f0" font-size="10" font-weight="600">Cross-Validated Against:</text>
+      
+      <rect x="12" y="58" width="216" height="34" rx="6" fill="#132b38" />
+      <text x="20" y="74" fill="#38bdf8" font-size="9.5" font-weight="600">National Library of Medicine / PubMed</text>
+      <text x="20" y="86" fill="#94a3b8" font-size="8">Peer-reviewed systematic reviews</text>
+
+      <rect x="12" y="100" width="216" height="34" rx="6" fill="#132b38" />
+      <text x="20" y="116" fill="#38bdf8" font-size="9.5" font-weight="600">American College Guidelines (ACG/AGA)</text>
+      <text x="20" y="128" fill="#94a3b8" font-size="8">Clinical diagnosis &amp; treatment consensus</text>
+
+      <rect x="12" y="142" width="216" height="34" rx="6" fill="#132b38" />
+      <text x="20" y="158" fill="#38bdf8" font-size="9.5" font-weight="600">UpToDate / WHO Clinical Standards</text>
+      <text x="20" y="170" fill="#94a3b8" font-size="8">Evidence quality scoring (High / Mod / Low)</text>
+
+      <line x1="12" y1="188" x2="228" y2="188" stroke="#1e3a47" stroke-width="1" />
+
+      <text x="12" y="208" fill="#facc15" font-size="9.5" font-weight="600">Anti-Hallucination Protocol:</text>
+      <text x="12" y="224" fill="#94a3b8" font-size="9">Claims without verified literature are</text>
+      <text x="12" y="238" fill="#94a3b8" font-size="9">downgraded to "INSUFFICIENT EVIDENCE"</text>
+      <text x="12" y="252" fill="#f87171" font-size="8.5">⚠️ Zero fabricated URLs or fake studies</text>
+    </g>
+  </g>
+
+  <!-- ================= STAGE 4: PEER REVIEW & REVISION ================= -->
+  <g transform="translate(1005, 130)">
+    <rect width="270" height="500" rx="16" fill="url(#cardGrad)" stroke="#1e293b" stroke-width="1.5" filter="url(#cardShadow)" />
+    
+    <rect width="270" height="42" rx="16" fill="#0f172a" />
+    <rect y="26" width="270" height="16" fill="#0f172a" />
+    <text x="16" y="26" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="1">4. PEER REVIEW &amp; REVISE</text>
+    <rect x="195" y="11" width="60" height="20" rx="10" fill="#6366f1" fill-opacity="0.2" stroke="#6366f1" stroke-width="1" />
+    <text x="206" y="25" fill="#a5b4fc" font-size="9" font-weight="700">Dialectic</text>
+
+    <!-- Cross Critique Box -->
+    <g transform="translate(15, 60)">
+      <rect width="240" height="185" rx="10" fill="#141933" stroke="#6366f1" stroke-width="1.2" />
+      <rect width="240" height="28" rx="10" fill="#6366f1" fill-opacity="0.2" />
+      <text x="12" y="19" fill="#a5b4fc" font-size="11" font-weight="700">⚖️ Cross-Model Peer Review</text>
+
+      <g transform="translate(10, 38)">
+        <rect width="220" height="60" rx="6" fill="#1e2347" />
+        <text x="10" y="18" fill="#38bdf8" font-size="9" font-weight="700">Model 1 critiques Model 2:</text>
+        <text x="10" y="34" fill="#cbd5e1" font-size="8.5">Flags overlooked differential pathways &amp;</text>
+        <text x="10" y="48" fill="#cbd5e1" font-size="8.5">unjustified diagnostic exclusions.</text>
+      </g>
+
+      <g transform="translate(10, 110)">
+        <rect width="220" height="60" rx="6" fill="#1e2347" />
+        <text x="10" y="18" fill="#c084fc" font-size="9" font-weight="700">Model 2 critiques Model 1:</text>
+        <text x="10" y="34" fill="#cbd5e1" font-size="8.5">Attacks diagnostic certainty &amp; exposes</text>
+        <text x="10" y="48" fill="#cbd5e1" font-size="8.5">plausible benign mimics.</text>
+      </g>
+    </g>
+
+    <path d="M 135 252 L 135 275" stroke="#818cf8" stroke-width="2" marker-end="url(#arrowIndigo)" />
+
+    <!-- Simultaneous Re-evaluation & Revision -->
+    <g transform="translate(15, 285)">
+      <rect width="240" height="185" rx="10" fill="#111c33" stroke="#38bdf8" stroke-width="1.2" />
+      <rect width="240" height="28" rx="10" fill="#0284c7" fill-opacity="0.25" />
+      <text x="12" y="19" fill="#38bdf8" font-size="11" font-weight="700">🔄 Parallel Thesis Revision</text>
+
+      <text x="12" y="48" fill="#e2e8f0" font-size="9.5" font-weight="600">Both Models Refine in Parallel:</text>
+      <text x="12" y="66" fill="#94a3b8" font-size="9">• Concede valid counter-points</text>
+      <text x="12" y="82" fill="#94a3b8" font-size="9">• Drop unverified claims</text>
+      <text x="12" y="98" fill="#94a3b8" font-size="9">• Re-weigh evidence matrix</text>
+      <text x="12" y="114" fill="#94a3b8" font-size="9">• Explicitly articulate uncertainties</text>
+
+      <rect x="12" y="130" width="216" height="42" rx="6" fill="#1e293b" />
+      <text x="20" y="147" fill="#4ade80" font-size="9" font-weight="600">✓ Consensus Convergence</text>
+      <text x="20" y="161" fill="#94a3b8" font-size="8">Produces grounded, peer-tested briefs</text>
+    </g>
+  </g>
+
+  <!-- ================= STAGE 5: ADJUDICATION & SAFETY ================= -->
+  <g transform="translate(1335, 130)">
+    <rect width="205" height="500" rx="16" fill="url(#cardGrad)" stroke="#1e293b" stroke-width="1.5" filter="url(#cardShadow)" />
+    
+    <rect width="205" height="42" rx="16" fill="#0f172a" />
+    <rect y="26" width="205" height="16" fill="#0f172a" />
+    <text x="16" y="26" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="1">5. ADJUDICATION</text>
+    <rect x="135" y="11" width="55" height="20" rx="10" fill="#38bdf8" fill-opacity="0.2" stroke="#38bdf8" stroke-width="1" />
+    <text x="144" y="25" fill="#38bdf8" font-size="9" font-weight="700">Consensus</text>
+
+    <!-- Model 3 Adjudication -->
+    <g transform="translate(12, 60)">
+      <rect width="181" height="205" rx="10" fill="#132442" stroke="#38bdf8" stroke-width="1.2" />
+      <rect width="181" height="28" rx="10" fill="#0284c7" fill-opacity="0.3" />
+      <text x="10" y="19" fill="#38bdf8" font-size="10.5" font-weight="700">🩺 Model 3: Adjudicator</text>
+
+      <text x="10" y="46" fill="#e2e8f0" font-size="9" font-weight="600">Senior Chief Clinician</text>
+      <text x="10" y="60" fill="#94a3b8" font-size="8">Provider: Gemini 3.5 Flash</text>
+      <line x1="10" y1="68" x2="171" y2="68" stroke="#334155" stroke-width="1" />
+
+      <text x="10" y="86" fill="#cbd5e1" font-size="8.5">• Weighs both theses</text>
+      <text x="10" y="102" fill="#cbd5e1" font-size="8.5">• Certainty scoring</text>
+      <text x="10" y="118" fill="#cbd5e1" font-size="8.5">• Areas of uncertainty</text>
+      <text x="10" y="134" fill="#cbd5e1" font-size="8.5">• Next clinical steps</text>
+      <text x="10" y="150" fill="#cbd5e1" font-size="8.5">• Recommendations</text>
+
+      <rect x="10" y="162" width="161" height="32" rx="6" fill="#1e293b" />
+      <text x="16" y="176" fill="#38bdf8" font-size="8" font-weight="600">Synthesizes Assessment</text>
+      <text x="16" y="187" fill="#64748b" font-size="7.5">Clear patient language</text>
+    </g>
+
+    <path d="M 102 272 L 102 295" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)" />
+
+    <!-- Instant Safety Audit -->
+    <g transform="translate(12, 305)">
+      <rect width="181" height="70" rx="10" fill="#0b241b" stroke="#10b981" stroke-width="1.2" />
+      <text x="10" y="20" fill="#4ade80" font-size="10" font-weight="700">✅ Instant Safety Audit</text>
+      <text x="10" y="38" fill="#a7f3d0" font-size="8.5">&lt;0.01s Deterministic Check</text>
+      <text x="10" y="52" fill="#94a3b8" font-size="8">Emergency flags &amp; disclaimers</text>
+    </g>
+
+    <path d="M 102 382 L 102 400" stroke="#10b981" stroke-width="2" marker-end="url(#arrow)" />
+
+    <!-- Structured UI Output -->
+    <g transform="translate(12, 408)">
+      <rect width="181" height="65" rx="10" fill="#1e293b" stroke="#06b6d4" stroke-width="1.2" />
+      <text x="10" y="20" fill="#38bdf8" font-size="10" font-weight="700">✨ Multi-View Output</text>
+      <text x="10" y="36" fill="#cbd5e1" font-size="8">• Assessment &amp; Next Steps</text>
+      <text x="10" y="50" fill="#cbd5e1" font-size="8">• Evidence &amp; Deliberation Logs</text>
+    </g>
+  </g>
+
+  <!-- FOOTER STATS STRIP -->
+  <g transform="translate(60, 655)">
+    <text x="0" y="20" fill="#64748b" font-size="11">🚀 Latency: ~12–14s total</text>
+    <text x="160" y="20" fill="#475569" font-size="11">•</text>
+    <text x="180" y="20" fill="#64748b" font-size="11">⚡ Token Quota: 1,000,000 TPM Free Tier Headroom</text>
+    <text x="470" y="20" fill="#475569" font-size="11">•</text>
+    <text x="490" y="20" fill="#64748b" font-size="11">🔄 Bidirectional Fallback: Groq ⇄ Google Gemini</text>
+    <text x="770" y="20" fill="#475569" font-size="11">•</text>
+    <text x="790" y="20" fill="#64748b" font-size="11">📚 Grounded in PubMed, ACG &amp; UpToDate Guidelines</text>
+  </g>
+</svg>

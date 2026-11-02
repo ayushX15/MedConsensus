@@ -15,7 +15,7 @@
 
 *A multi-agent council of specialized AI clinicians, skeptical reviewers, and evidence adjudicators that cross-examine, peer-review, and ground diagnostic assessments in clinical literature.*
 
-[Live Workflow](#-how-it-works) • [Architecture](#-system-architecture) • [Models](#-council-of-models) • [Quick Start](#-quick-start) • [Project Structure](#-project-structure)
+[Workflow](#-system-architecture) • [Council of Models](#-council-of-models) • [Quick Start](#-quick-start) • [Project Structure](#-project-structure)
 
 </div>
 
@@ -41,32 +41,9 @@ Single-prompt LLM medical queries suffer from high hallucination rates, prematur
 
 ## 🔄 System Architecture
 
-```mermaid
-flowchart TD
-    subgraph INTAKE["1. Intake & Fast Triage"]
-        U["👤 Patient / Clinical Query"] --> ST["🛡️ Phase 1: Fast Safety & Router<br/>(Groq · gpt-oss-20b · ~0.8s)"]
-    end
-
-    ST -->|General / Educational| FAST["⚡ Path A: Direct Educational Response"]
-    ST -->|Clinical Analysis / Urgent| PARALLEL_WAVE
-
-    subgraph PARALLEL_WAVE["2. Parallel Clinical Analysis & Extraction"]
-        E["📋 Clinical Extraction<br/>(Gemini 3.5 Flash Lite)"]
-        M1["🩺 Model 1: Clinical Analyst<br/>Broad Differential Thinking"]
-        M2["🔬 Model 2: Skeptical Analyst<br/>Biases & Benign Mimics"]
-    end
-
-    PARALLEL_WAVE --> EV["🔎 Phase 3: Evidence & Guidelines Grounding<br/>(PubMed · ACG · UpToDate Consensus Matrix)"]
-
-    subgraph PEER_REVIEW["4. Cross-Model Peer Review & Revision"]
-        EV --> CR1["⚖️ Model 1 critiques Model 2 & Revises Thesis"]
-        EV --> CR2["⚖️ Model 2 critiques Model 1 & Refines Skepticism"]
-    end
-
-    CR1 & CR2 --> ADJ["🩺 Phase 5: Model 3 Final Adjudication<br/>(Synthesis · Uncertainties · Recommendations)"]
-    ADJ --> SAFE["✅ Phase 6: Instant Safety Gate Audit<br/>(<0.01s Deterministic Verification)"]
-    SAFE --> UI["✨ Transparent Multi-View Clinical UI"]
-```
+<div align="center">
+  <img src="docs/architecture.png" alt="Consilium System Architecture Flowchart" width="100%" style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);" />
+</div>
 
 ---
 
@@ -121,7 +98,7 @@ Consilium’s `HybridLLMClient` monitors provider health automatically:
 
 ```bash
 git clone https://github.com/ayushX15/MedConsensus.git
-cd Consilium
+cd MedConsensus
 
 # Create and activate Python virtual environment
 python -m venv .venv
@@ -215,6 +192,10 @@ Consilium/
 ├── README.md                # Project documentation & visual guide
 ├── REPORT.md                # System audit and architecture specification
 │
+├── docs/
+│   ├── architecture.png     # Landscape 4K system architecture diagram
+│   └── architecture.svg     # Scalable vector architecture diagram
+│
 ├── backend/
 │   ├── main.py              # FastAPI application & CORS configuration
 │   ├── config.py            # Pydantic BaseSettings & model role mappings
@@ -248,69 +229,6 @@ Consilium/
 │
 └── scripts/
     └── test_models.py       # Provider connectivity test script
-```
-
----
-
-## 📡 API Reference
-
-### `POST /api/council`
-Runs the complete multi-model deliberation pipeline.
-
-**Request:**
-```json
-{
-  "prompt": "I have had irregular bowel movements for 3 days with a feeling of incomplete evacuation. No fever or bleeding."
-}
-```
-
-**Response (Summary):**
-```json
-{
-  "prompt": "...",
-  "route": "MEDICAL_ANALYSIS",
-  "safety": {
-    "risk_level": "safe",
-    "route_override": false,
-    "red_flags": [],
-    "reason": "Non-urgent gastrointestinal symptoms."
-  },
-  "answer": "Your symptoms suggest functional constipation or dyssynergic defecation...",
-  "assessment": {
-    "certainty": "possible",
-    "evidence_quality": "moderate"
-  },
-  "recommendations": [
-    "Consult a primary care provider or gastroenterologist.",
-    "Maintain a symptom and dietary fiber journal."
-  ],
-  "claims": [
-    {
-      "claim_id": "C001",
-      "text": "Incomplete evacuation and irregular bowel frequency align with functional defecation disorder criteria.",
-      "status": "SUPPORTED",
-      "overall_evidence_quality": "HIGH",
-      "source_ids": ["S001"]
-    }
-  ],
-  "sources": [
-    {
-      "source_id": "S001",
-      "title": "ACG Clinical Practice Guideline on Functional Constipation",
-      "publisher": "American College of Gastroenterology / PubMed",
-      "url": "https://pubmed.ncbi.nlm.nih.gov"
-    }
-  ],
-  "model_details": {
-    "model_1": { "model_name": "Model 1: Clinical Analyst", "was_revised": true },
-    "model_2": { "model_name": "Model 2: Skeptical Analyst", "was_revised": true }
-  },
-  "phases_completed": [
-    "safety_and_routing", "information_extraction", "dual_model_analysis",
-    "evidence_retrieval", "peer_review", "re_evaluation",
-    "final_claim_matrix", "final_adjudication", "final_safety_gate"
-  ]
-}
 ```
 
 ---
